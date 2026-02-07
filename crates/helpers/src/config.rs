@@ -3,16 +3,15 @@ use std::io::{Read, Write, stdout};
 use std::path::PathBuf;
 
 use serde::{Serialize, Deserialize};
-use crate::data::class::Class;
-use crate::data::time::{Day, Time};
-use crate::helpers::io::{stdin_readline, print};
-use crate::helpers::parse_time;
+use data::class::Class;
+use data::time::{Day, Time};
+use super::io::{stdin_readline, print};
+use super::parse_time;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Config {
     classes: Vec<Class>,
 }
-
 
 pub fn read_or_init_config(file: &mut File) -> Config {
     let mut content = String::new();
@@ -95,6 +94,8 @@ pub fn init_classes() -> Config {
                 println!("Invalid input: \"{input}\". Please use specified format.");
                 continue;
             };
+
+            start_time.day = day;
 
             loop {
                 print!("What time on {} does this class start (13:00, 1:00 PM): ", start_time.day); stdout().flush().expect("Unable to flush stdout buffer.");

@@ -1,0 +1,9 @@
+[package]
+name = "data"
+version.workspace = true   # inherit from root
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+# only pull in what this specific library needs
+serde = { workspace = true }

@@ -1,9 +1,31 @@
-[package]
-name = "classnote"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+members = ["cli", "app", "crates/*"] 
+resolver = "2"
 
-[dependencies]
-clap = { version = "4.5.57", features = ["derive"] }
-serde = { version = "1.0.228", features = ["derive", "serde_derive"] }
+default-members = ["cli"]
+
+[alias]
+c = "run -p classnote-cli --"
+a = "run -p classnote-app --"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Jonathan K"]
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/xero-lib/classnote"
+
+[workspace.dependencies]
+# Define external crates ONCE here
+serde = { version = "1.0.228", features = ["derive"] }
 toml = { version = "0.9.11", features = ["serde"] }
+tokio = { version = "1.0", features = ["full"] }
+chrono = "0.4"
+
+data = { path = "crates/data" }
+helpers = { path = "crates/helpers" }
+
+[profile.release]
+strip = true      # Removes symbols from binary (smaller file size)
+opt-level = 3     # Maximum optimization
+lto = true        # Link Time Optimization for faster code

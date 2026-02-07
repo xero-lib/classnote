@@ -1,0 +1,11 @@
+[package]
+name = "helpers"
+version.workspace = true   # inherits from root
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+# only pull in what this specific library needs
+serde = { workspace = true }
+data = { workspace = true }
+toml = { workspace = true }

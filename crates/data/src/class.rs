@@ -1,4 +1,4 @@
-use crate::data::{
+use super::{
     time::{ClassTime, Time},
     location::Location
 };

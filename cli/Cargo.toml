@@ -1,0 +1,12 @@
+[package]
+name = "classnote-cli"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+clap = { version = "4.5.57", features = ["derive"] }
+# local
+data = { workspace = true }
+helpers = { workspace = true }

@@ -1,7 +1,5 @@
-mod data;
-mod helpers;
-
 use helpers::config::{get_config_file, read_or_init_config};
+
 
 use clap::Parser;
 
