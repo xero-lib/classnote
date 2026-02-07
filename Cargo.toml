@@ -1,0 +1,9 @@
+[package]
+name = "classnote"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.57", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive", "serde_derive"] }
+toml = { version = "0.9.11", features = ["serde"] }
