@@ -1,7 +1,10 @@
 mod cli;
 
-use cli::Cli;
-use helpers::config::{get_config_file, read_or_init_config};
+use cli::{ Cli, Commands };
+use helpers::{
+    config::{get_config_file, read_or_init_config},
+    note::create_note
+};
 
 fn main() {
     let args = Cli::get_cli();
@@ -14,13 +17,13 @@ fn main() {
         eprintln!("Unable to move into notes directory \"{}\": {e:#}", config.get_root().to_string_lossy())
     };
     
-    config.print_available_classes();
-
-    // manually add paths to config for immediate open from anywhere?
-    // add professors etc to init
-    // implement copying original times to next day on empty enter
-    // add option to navigate to path manually during config initialization?
-    
+    match args.command {
+        Some(Commands::List) => config.print_available_classes(),
+        Some(Commands::Update) => todo!(),
+        Some(Commands::Add { name }) => todo!(),
+        Some(Commands::Remove { name }) => todo!(),
+        None => create_note()
+    }
 }
 
 
