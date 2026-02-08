@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{io::{Write, stdout}, path::PathBuf};
 
 use serde::{Serialize, Deserialize};
 
@@ -45,8 +45,10 @@ impl Config {
     }
 
     pub fn print_available_classes(&self) {
-        println!("Available classes:\n{}", self.get_classes().iter().fold(String::new(), |init, class| 
+        print!("Available classes:\n{}", self.get_classes().iter().fold(String::new(), |init, class| 
             init + &class.to_string()
         ));
+
+        stdout().flush().expect("Unable to flush stdout.");
     }
 }
