@@ -3,7 +3,7 @@ mod cli;
 use cli::{ Cli, Commands };
 use helpers::{
     config::{get_config_file, read_or_init_config},
-    note::create_note
+    note::open_note
 };
 
 fn main() {
@@ -18,11 +18,11 @@ fn main() {
     };
     
     match args.command {
+        None => open_note(config),
         Some(Commands::List) => config.print_available_classes(),
         Some(Commands::Update) => todo!(),
         Some(Commands::Add { name }) => todo!(),
         Some(Commands::Remove { name }) => todo!(),
-        None => create_note()
     }
 }
 

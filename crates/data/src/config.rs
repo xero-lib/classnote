@@ -33,7 +33,17 @@ impl Config {
     }
 
     pub fn get_editor(&self) -> String {
-        self.editor.clone()
+        if !self.editor.is_empty() {
+            self.editor.clone()
+        } else {
+            match std::env::var("EDITOR") {
+                Ok(e) => e,
+                Err(_) => {
+                    eprintln!("No editor set, defaulting to vim.");
+                    "vim".into()
+                }
+            }
+        }
     }
 
     pub fn add_class(&mut self, class: Class) {

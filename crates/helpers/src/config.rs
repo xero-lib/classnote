@@ -34,7 +34,7 @@ fn get_class(name: String) -> Class {
         for day in days {
             if day == Day::Async { continue; }
             if prev_time != ClassTime::default() {
-                let input = prompt!("Would you like to set the {day} meeting to the last time ({} - {})? [Y/n]: ", prev_time.start.get_hms(), prev_time.end.get_hms());
+                let input = prompt!("Would you like to set the {day} meeting to the last time ({} - {})? [Y/n]: ", prev_time.start.hms_string(), prev_time.end.hms_string());
 
                 if input.is_empty() || input.to_ascii_lowercase().starts_with('y') {
                     let mut new_time = prev_time.clone();

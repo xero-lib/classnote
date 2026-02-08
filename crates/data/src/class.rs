@@ -22,8 +22,8 @@ impl Display for Class {
                     camp  = time.location.campus,
                     bldg  = time.location.building,
                     room  = time.location.room,
-                    start = time.start.get_hms(),
-                    end   = time.end.get_hms(),
+                    start = time.start.hms_string(),
+                    end   = time.end.hms_string(),
                     day   = time.start.day
                 )
             })

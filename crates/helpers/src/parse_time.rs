@@ -18,7 +18,7 @@ pub fn parse_time(input: &str) -> Result<(u8, u8, u8), &str>{
         return Err("Invalid seconds entry. Please try again.");
     };
 
-    if ((split.len() == 1 && hours > 24) || (split.len() == 2 && hours > 12)) || mins > 60 || secs > 60 {
+    if ((split.len() == 1 && hours >= 24) || (split.len() == 2 && hours > 12)) || mins >= 60 || secs >= 60 {
         return Err("Please enter a valid time.");
     }
 

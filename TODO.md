@@ -1,3 +1,4 @@
 - [ ] Add a "New Semester" command
 - [ ] Add a "Semester Complete" command
 - [ ] Add flag (and persistence) for 24 vs 12 hour format.
+- [ ] Differentiate between course (MATH-2415) and class (Class5)
