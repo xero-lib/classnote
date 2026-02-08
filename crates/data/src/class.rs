@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use super::time::ClassTime;
 
 use serde::{Serialize, Deserialize};
@@ -8,6 +10,25 @@ pub struct Class {
     times: Vec<ClassTime>,
     professor: String,
     office_hours: Vec<ClassTime>
+}
+
+impl Display for Class {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(
+            &self.times.iter().fold(String::new(), |init, time| {
+                init + &format!("\t{name} ({prof}) on {day}, from {start} to {end}, at {camp}, {bldg} (Room {room})\n",
+                    name  = self.name,
+                    prof  = self.professor,
+                    camp  = time.location.campus,
+                    bldg  = time.location.building,
+                    room  = time.location.room,
+                    start = time.start.get_hms(),
+                    end   = time.end.get_hms(),
+                    day   = time.start.day
+                )
+            })
+        )
+    }
 }
 
 impl Class {
@@ -29,6 +50,14 @@ impl Class {
     }
 
     pub fn get_name(&self) -> &String {
-        return &self.name;
+        &self.name
+    }
+
+    pub fn get_professor(&self) -> &String {
+        &self.professor
+    }
+
+    pub fn get_times(&self) -> &Vec<ClassTime> {
+        &self.times
     }
 }

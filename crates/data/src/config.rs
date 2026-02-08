@@ -43,4 +43,10 @@ impl Config {
     pub fn serialize(&self) -> String {
         toml::to_string(self).expect("Encountered error during serialization of TOML data.")
     }
+
+    pub fn print_available_classes(&self) {
+        println!("Available classes:\n{}", self.get_classes().iter().fold(String::new(), |init, class| 
+            init + &class.to_string()
+        ));
+    }
 }

@@ -5,8 +5,8 @@ resolver = "2"
 default-members = ["cli"]
 
 [alias]
-c = "run -p classnote-cli --"
-a = "run -p classnote-app --"
+cli = "run -p classnote-cli --"
+app = "run -p classnote-app --"
 
 [workspace.package]
 version = "0.1.0"

@@ -78,6 +78,18 @@ pub struct Time {
     pub second: u8,
 }
 
+impl Display for Time {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{} on {}", self.get_hms(), self.day))
+    }
+}
+
+impl Time {
+    pub fn get_hms(&self) -> String {
+        format!("{:0>2}:{:0>2}:{:0>2}", self.hour, self.minute, self.second)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq, Clone)]
 pub struct ClassTime {
     pub start: Time,

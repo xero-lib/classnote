@@ -14,12 +14,12 @@ use super::parse_time;
 // change all to post-pub reexport?
 
 fn get_class(name: String) -> Class {
-    let professor = get_stdin(&format!("{} professor", name));        
+    let professor = demand_stdin(&format!("{} professor", name));        
     let mut times: Vec<ClassTime> = Default::default();
     let mut office_hours: Vec<ClassTime>  = Default::default();
 
     loop {
-        let input = prompt!("What days does {name} meet? (M/T/W/Th/F/Sat/Sun): ");
+        let input = prompt!("Which days does {name} meet? (M/T/W/Th/F/Sat/Sun): ");
         let days: Vec<Day> = match input.split('/').map(str::parse).collect() {
             Ok(d) => d,
             Err(e) => {
@@ -28,16 +28,13 @@ fn get_class(name: String) -> Class {
             }
         };
 
-        print_flush!("Now setting meeting times for {name} on {}...", days.iter().map(Day::to_string).collect::<Vec<_>>().join("/"));
+        println!("Now setting meeting times for {name} on {}...", days.iter().map(Day::to_string).collect::<Vec<_>>().join("/"));
 
         let mut prev_time = ClassTime::default();
         for day in days {
             if day == Day::Async { continue; }
             if prev_time != ClassTime::default() {
-                let input = prompt!("Would you like to set the {day} meeting to the last time ({}:{}:{} - {}:{}:{})? [Y/n]: ",
-                    prev_time.start.hour, prev_time.start.minute, prev_time.start.second,
-                    prev_time.end.hour,   prev_time.end.minute,   prev_time.end.second
-                );
+                let input = prompt!("Would you like to set the {day} meeting to the last time ({} - {})? [Y/n]: ", prev_time.start.get_hms(), prev_time.end.get_hms());
 
                 if input.is_empty() || input.to_ascii_lowercase().starts_with('y') {
                     let mut new_time = prev_time.clone();
@@ -50,7 +47,7 @@ fn get_class(name: String) -> Class {
             let new_start = get_time("start", day, None);
             let new_end = get_time("end", day, Some(new_start.clone()));
 
-            let location = get_location(&name);
+            let location = get_location(&name, day);
             prev_time = (new_start, new_end, location).into();
             times.push(prev_time.clone());
         }
@@ -64,7 +61,7 @@ fn get_class(name: String) -> Class {
 
     if input.is_empty() || input.to_ascii_lowercase().starts_with('y') {
         loop {
-            let input = prompt!("What days are the office hours of {professor}? (M/T/W/Th/F/Sat/Sun): ");
+            let input = prompt!("Which days are the office hours of {professor}? (M/T/W/Th/F/Sat/Sun): ");
             let days: Vec<Day> = match input.split('/').map(str::parse).collect::<Result<Vec<_>, _>>() {
                 Ok(i) => i,
                 Err(e) => {
@@ -95,7 +92,7 @@ fn get_class(name: String) -> Class {
                 let new_start = get_time("start", day, None);
                 let new_end = get_time("end", day, Some(new_start.clone()));
 
-                let location = get_location(&format!("{professor}'s {day} office hours"));
+                let location = get_location(&format!("{professor}'s office hours"), day);
                 
                 office_hours.push((new_start, new_end, location).into());
             }
@@ -127,34 +124,39 @@ fn build_config_from_dir(dir: ReadDir) -> Config {
         config.add_class(get_class(name));
     }
 
-    let input = prompt!("Would you like to set a custom editor? [y/N]: ");
-
     let mut editor = std::env::var("EDITOR").unwrap_or_default();
-    if editor.is_empty() || !input.is_empty() || !input.to_ascii_lowercase().starts_with('n') {
-        editor = prompt!("Enter editor to open notes with: ");
-    }
+    let should_prompt = if !editor.is_empty() {
+        let input = prompt!("Would you like to set a custom editor? [y/N]: ");
+        
+        input.to_ascii_lowercase().starts_with('y')
+    } else { true };
+    
+    if should_prompt { editor = demand_stdin("Editor program"); }
 
     config.set_editor(editor);
 
     let mut root = std::env::current_dir().unwrap_or_default();
-    if !root.as_os_str().is_empty() {
+    
+    let should_prompt_path = if !root.as_os_str().is_empty() {
         let input = prompt!("Would you like to set a new path to create new notes in? (N = set current directory as path) [y/N]: ");
 
-        if input.to_ascii_lowercase().starts_with('y') {
-            loop {
-                let input = prompt!("Enter new notes path: ");
+        input.to_ascii_lowercase().starts_with('y')
+    } else { true };
 
-                if !std::fs::exists(&input).unwrap_or_default() {
-                    println!("Unable to find \"{input}\". Please try again.");
-                    continue;
-                }
+    if should_prompt_path {
+        loop {
+            let input = prompt!("Enter new notes path: ");
 
-                println!("Setting path to \"{input}\".");
-
-                root = PathBuf::from(input);
-
-                break;
+            if !std::fs::exists(&input).unwrap_or_default() {
+                println!("Unable to find \"{input}\". Please try again.");
+                continue;
             }
+
+            println!("Setting path to \"{input}\".");
+
+            root = PathBuf::from(input);
+
+            break;
         }
     }
 
@@ -187,10 +189,10 @@ pub fn read_or_init_config(file: &mut File) -> Config {
     if content.len() == 0 {
         let response = prompt!("No config found. Would you like to build a config from an existing directory? [y/N]: ");
 
-        if response.len() == 0 || response.to_ascii_lowercase() == "y" {
+        if response.to_ascii_lowercase().starts_with('y') {
             loop {
-                let path = prompt!("Please enter path, or leave blank to read current directory: ");
-
+                let path = prompt!("Please enter path, or leave blank to read current directory, or c to cancel: ");
+                if path == "c" { break; }
                 let dir = if path.len() == 0 { std::env::current_dir().expect("Unable to get current directory.").read_dir().unwrap() } else { 
                     if !std::fs::exists(std::path::absolute(&path).expect("Unable to normalize path.")).expect("Unable to check for dir existence.") {
                         eprintln!("\"{path}\" does not appear to exist. Please try again...");
@@ -250,12 +252,12 @@ pub fn get_config_file(path: Option<&PathBuf>) -> File {
     std::fs::File::options().append(true).read(true).create(true).open(file_path).expect("Unable to create config file. Please check home directory .config permissions")
 }
 
-fn get_stdin(thing: &str) -> String {
+fn demand_stdin(thing: &str) -> String {
     loop {
         let input = prompt!("{thing}: ");
 
         if input.len() == 0 {
-            println!("Please enter a {thing}.");
+            println!("Please enter {thing}.");
             continue;
         }
 
@@ -286,7 +288,7 @@ fn get_time(which: &str, day: Day, previous: Option<Time>) -> Time {
         if let Some(start_time) = previous {
             time.day = if time.hour < start_time.hour || (time.hour == start_time.hour && time.minute < start_time.minute) {
                 let input = prompt!("Confirm class spans between two days [y/N]: ");
-                if input.trim().len() == 0 || input.trim().to_ascii_lowercase() != "y" {
+                if input.len() == 0 || input.trim().to_ascii_lowercase().starts_with('n') {
                     continue;
                 }
                 
@@ -296,18 +298,18 @@ fn get_time(which: &str, day: Day, previous: Option<Time>) -> Time {
             };
         }
 
-        println!("Set class to begin at {:0>2}:{:0>2}:{:0>2} on {}", time.hour, time.minute, time.second, time.day);
+        println!("Set class to {which} at {time}");
         return time;
     }
 }
 
-fn get_location(of: &str) -> Location {
-    println!("Please fill out location information for {of}...");
+fn get_location(of: &str, day: Day) -> Location {
+    println!("Please fill out location information for {of} on {day}...");
     // what campus
     Location { 
-        campus: get_stdin("Campus"),
-        building: get_stdin("Building name/number"),
-        room: get_stdin("Room name/number")
+        campus: demand_stdin("Campus"),
+        building: demand_stdin("Building name/number"),
+        room: demand_stdin("Room name/number")
     }
 }
 
@@ -316,7 +318,7 @@ pub fn init_classes() -> Config {
 
     loop {
         // create enum for items/
-        let name = get_stdin("Class name");
+        let name = demand_stdin("Class name");
         config.add_class(get_class(name));
 
 
