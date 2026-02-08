@@ -7,3 +7,5 @@ edition.workspace = true
 [dependencies]
 # only pull in what this specific library needs
 serde = { workspace = true }
+toml = { workspace = true }
+chrono = { workspace = true }

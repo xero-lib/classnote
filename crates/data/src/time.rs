@@ -1,5 +1,8 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 use serde::{Serialize, Deserialize};
+
+use crate::Location;
+// use chrono // figure out usage
 
 // 1-indexed to match unix `date +%u` output
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq, Clone, Copy)]
@@ -13,12 +16,11 @@ pub enum Day {
     Friday,
     Saturday,
     Sunday,
-    Unset
 }
 
 impl Day {
-    pub fn tomorrow(&self) -> Day {
-        match *self {
+    pub fn tomorrow(self) -> Day {
+        match self {
             Day::Async => Day::Async,
             Day::Monday => Day::Tuesday,
             Day::Tuesday => Day::Wednesday,
@@ -27,24 +29,6 @@ impl Day {
             Day::Friday => Day::Saturday,
             Day::Saturday => Day::Sunday,
             Day::Sunday => Day::Monday,
-            Day::Unset => Day::Unset,
-        }
-    }
-}
-
-impl From<&str> for Day {
-    fn from(value: &str) -> Self {
-        let lc_val = value.to_ascii_lowercase();
-        match &lc_val {
-            d if "monday".starts_with(d)    => Day::Monday,
-            d if "tuesday".starts_with(d)   => Day::Tuesday,
-            d if "wednesday".starts_with(d) => Day::Wednesday,
-            d if "thursday".starts_with(d)  => Day::Thursday,
-            d if "friday".starts_with(d)    => Day::Friday,
-            d if "saturday".starts_with(d)  => Day::Saturday, // means that "S" will result in "Saturday"
-            d if "sunday".starts_with(d)    => Day::Sunday,
-            d if d.trim().len() == 0        => Day::Async,
-            _ => Day::Unset
         }
     }
 }
@@ -61,13 +45,32 @@ impl Display for Day {
                 Day::Friday    => "Friday",
                 Day::Saturday  => "Saturday",
                 Day::Sunday    => "Sunday",
-                Day::Unset     => "Undefined",
             }
         )
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone, Copy)]
+impl FromStr for Day {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let d = s.to_ascii_lowercase();
+        let d = d.trim();
+
+        match d {
+            "sa" | "sat" | "saturday"       => Ok(Day::Saturday), // means that "S" will result in "Saturday"
+            "su" | "sun" | "sunday"         => Ok(Day::Sunday),
+            _ if "monday".starts_with(d)    => Ok(Day::Monday),
+            _ if "tuesday".starts_with(d)   => Ok(Day::Tuesday),
+            _ if "wednesday".starts_with(d) => Ok(Day::Wednesday),
+            _ if "thursday".starts_with(d)  => Ok(Day::Thursday),
+            _ if "friday".starts_with(d)    => Ok(Day::Friday),
+            _ if d.trim().len() == 0        => Ok(Day::Async),
+            _ => Err(format!("Unable to parse date from input: \"{s}\""))
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, PartialEq, Clone, Copy)]
 pub struct Time {
     pub day: Day,
     pub hour: u8,
@@ -75,17 +78,19 @@ pub struct Time {
     pub second: u8,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Default, PartialEq, Clone)]
 pub struct ClassTime {
     pub start: Time,
     pub end: Time,
+    pub location: Location,
 }
 
-impl From<(Time, Time)> for ClassTime {
-    fn from(value: (Time, Time)) -> Self {
+impl From<(Time, Time, Location)> for ClassTime {
+    fn from(value: (Time, Time, Location)) -> Self {
         Self {
             start: value.0,
-            end: value.1
+            end: value.1,
+            location: value.2
         }
     }
 }

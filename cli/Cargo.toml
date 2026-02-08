@@ -6,6 +6,7 @@ authors.workspace = true
 edition.workspace = true
 
 [dependencies]
+chrono = { workspace = true, features = ["serde"] }
 clap = { version = "4.5.57", features = ["derive"] }
 # local
 data = { workspace = true }
