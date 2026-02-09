@@ -1,8 +1,6 @@
 <div align="center">
-  <br>
-  <img width="25%" alt="Classnote logo" src="">
-
-  # Classnote
+  <img width="75%" alt="Classnote" src="https://github.com/user-attachments/assets/a832f071-d03d-43d1-b76a-bdd4ca63ddd8">
+  
   **Fully-featured school-note management application.**
 </div>
 
