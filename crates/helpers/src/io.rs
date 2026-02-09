@@ -12,8 +12,33 @@ pub fn get_trimmed_stdin() -> String {
     return raw.trim().to_string();
 }
 
+pub fn demand_stdin(thing: &str) -> String {
+    loop {
+        let input = prompt!("{thing}: ");
+
+        if input.len() == 0 {
+            println!("Please enter {thing}.");
+            continue;
+        }
+
+        return input.to_string();
+    }
+}
+
 #[macro_export]
 macro_rules! prompt {
+    (required, $($arg:tt)*) => {{
+        loop {
+            let input = $crate::prompt!($($arg)*);
+            if input.is_empty() {
+                println!("This is a required field.");
+                continue;
+            }
+
+            break input;
+        }
+    }};
+
     ($($arg:tt)*) => {{
         use std::io::Write;
         print!($($arg)*);
