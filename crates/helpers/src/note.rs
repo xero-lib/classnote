@@ -62,7 +62,8 @@ pub fn get_current_classnote(config: &Config, class: &Class) -> (PathBuf, File) 
         .unwrap_or(0)
     ;
     
-    let current_iso_8601: DateTime<Local> = time::SystemTime::now().into();
+    let current_time: DateTime<Local> = time::SystemTime::now().into();
+    let current_iso_8601 = current_time.format("%Y-%m-%d");
     
     let potential_class_name = format!("Class{}-{}", last_class_num, current_iso_8601);
     let potential_class_path = course_path.join(format!("Week_{}", latest_week)).join(&potential_class_name);
@@ -72,8 +73,7 @@ pub fn get_current_classnote(config: &Config, class: &Class) -> (PathBuf, File) 
     }
 
     let class_instance = format!("Class{}-{}", last_class_num + 1, current_iso_8601);
-
-    let file_path =
+    let class_path =
         if week_entries.len() >= class.get_times().len() {
             let new_path = course_path.join(format!("Week_{}", latest_week + 1));
             if !std::fs::exists(&new_path).expect("Unable to check for note folder path existence.") {
@@ -85,8 +85,11 @@ pub fn get_current_classnote(config: &Config, class: &Class) -> (PathBuf, File) 
             course_path.join(format!("Week_{latest_week}"))
         }
         .join(&class_instance)
-        .join(class_instance + ".md")
     ;
+
+    std::fs::create_dir_all(&class_path).expect("Failed to create class directory.");
+
+    let file_path = class_path.join(class_instance + ".md");
     
     return (file_path.clone(), std::fs::OpenOptions::new().append(true).create(true).read(true).write(true).open(file_path).unwrap());
 }
