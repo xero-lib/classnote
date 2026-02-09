@@ -1,7 +1,7 @@
-use std::{fs::{DirEntry, File, ReadDir}, path::PathBuf, process::Command, time};
+use std::{fs::{DirEntry, File}, path::PathBuf, process::Command, time};
 
 use chrono::{DateTime, Local};
-use data::{Config, class::Class, time::Time};
+use data::{Config, class::Class, time::{Time, Times}};
 
 
 pub fn create_note(name: &str) -> File{
@@ -95,7 +95,10 @@ pub fn open_note(config: Config) {
     // determine class based on times from config.
     let curr_time = Time::now();
     let curr_class: Option<Class> = config.get_classes().iter().filter_map(|class|
-        class.get_times().iter().any(|time| time.includes(curr_time)).then_some(class.clone())
+        match class.get_times() {
+            Times::Async => None,
+            Times::At(times) => times.iter().any(|time| time.includes(curr_time)).then_some(class.clone())
+        }
     ).next();
 
     // if there's no class at this time, say so (perhaps determine other functionality in the future)
@@ -104,7 +107,7 @@ pub fn open_note(config: Config) {
         return;
     };
 
-    let (path, note) = get_current_classnote(&config, &class);
+    let (path, _note) = get_current_classnote(&config, &class);
     
     // perhaps later implement your own editor?
     let status = Command::new(config.get_editor())
