@@ -146,6 +146,32 @@ impl Display for Time {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub enum Times {
+    #[default]
+    Async,
+    At(Vec<ClassTime>)
+}
+
+impl From<Vec<ClassTime>> for Times {
+    fn from(value: Vec<ClassTime>) -> Self {
+        if value.is_empty() {
+            Self::Async
+        } else {
+            Self::At(value)
+        }
+    }
+}
+
+impl Times {
+    pub fn len(&self) -> usize {
+        match &self {
+            Self::Async => 0,
+            Self::At(times) => times.len()
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq, Clone)]
 pub struct ClassTime {
     pub start: Time,
