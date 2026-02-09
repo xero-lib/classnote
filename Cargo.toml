@@ -4,13 +4,9 @@ resolver = "2"
 
 default-members = ["cli"]
 
-[alias]
-cli = "run -p classnote-cli --"
-app = "run -p classnote-app --"
-
 [workspace.package]
 version = "0.1.0"
-authors = ["Jonathan K"]
+authors = ["Jonathan K (Thoth)"]
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/xero-lib/classnote"
