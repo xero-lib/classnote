@@ -1,12 +1,12 @@
-use std::fs::{File, ReadDir};
+use std::fs::{File, ReadDir, create_dir_all};
 use std::io::{Read, Write};
 use std::path::PathBuf;
 
 use data::class::Class;
-use data::time::{ClassTime, Day, Time};
+use data::time::{ClassTime, Day, Time, Times};
 use data::{Config, Location};
 
-use crate::io::prompt;
+use crate::io::{demand_stdin, prompt};
 use crate::print_flush;
 
 use super::parse_time;
@@ -19,7 +19,12 @@ fn get_class(name: String) -> Class {
     let mut office_hours: Vec<ClassTime>  = Default::default();
 
     loop {
-        let input = prompt!("Which days does {name} meet? (M/T/W/Th/F/Sat/Sun): ");
+        let input = prompt!("Which days does {name} meet? (M/T/W/Th/F/Sat/Sun, or empty for Async): ");
+        if input.is_empty() {
+            println!("Marking {name} as asynchronous.");
+            break;
+        }
+
         let days: Vec<Day> = match input.split('/').map(str::parse).collect() {
             Ok(d) => d,
             Err(e) => {
@@ -47,8 +52,7 @@ fn get_class(name: String) -> Class {
             let new_start = get_time("start", day, None);
             let new_end = get_time("end", day, Some(new_start.clone()));
 
-            let location = get_location(&name, day);
-            prev_time = (new_start, new_end, location).into();
+            prev_time = (new_start, new_end, get_location(&name, day)).into();
             times.push(prev_time.clone());
         }
 
@@ -92,28 +96,34 @@ fn get_class(name: String) -> Class {
                 let new_start = get_time("start", day, None);
                 let new_end = get_time("end", day, Some(new_start.clone()));
 
-                let location = get_location(&format!("{professor}'s office hours"), day);
-                
-                office_hours.push((new_start, new_end, location).into());
+                office_hours.push((new_start, new_end, get_location(&format!("{professor}'s office hours"), day)).into());
             }
 
             break;
         }
     }
 
-    return Class::new(name, professor, times, office_hours);
+    return Class::new(name, professor, Times::from(times), Times::from(office_hours));
 }
 
 fn build_config_from_dir(dir: ReadDir) -> Config {
     let class_names = dir
         .filter_map(Result::ok)
         .filter_map(|f| 
-            f.file_type().ok().and_then(|t| 
-                t.is_dir().then_some(f)
-            )
+            f
+                .file_type()
+                .ok()
+                .and_then(|t| 
+                    t
+                        .is_dir()
+                        .then_some(f)
+                )
         )
         .map(|f|
-            f.file_name().to_string_lossy().to_string()
+            f
+                .file_name()
+                .to_string_lossy()
+                .to_string()
         )
         .collect::<Vec<_>>()
     ;
@@ -252,19 +262,6 @@ pub fn get_config_file(path: Option<&PathBuf>) -> File {
     std::fs::File::options().append(true).read(true).create(true).open(file_path).expect("Unable to create config file. Please check home directory .config permissions")
 }
 
-fn demand_stdin(thing: &str) -> String {
-    loop {
-        let input = prompt!("{thing}: ");
-
-        if input.len() == 0 {
-            println!("Please enter {thing}.");
-            continue;
-        }
-
-        return input.to_string();
-    }
-}
-
 fn get_time(which: &str, day: Day, previous: Option<Time>) -> Time {
     let mut time = Time::default();
     time.day = day;
@@ -315,48 +312,29 @@ fn get_location(of: &str, day: Day) -> Location {
 
 pub fn init_classes() -> Config {
     let mut config = Config::default();
+    
+    loop {
+        let input = prompt!(required, "Where would you like to store notes? (Will be created if it doesn't exist): ");
+        let result = match std::fs::exists(&input) {
+            Ok(exists) if exists => Ok(config.set_root(PathBuf::from(&input))),
+            Ok(_) => create_dir_all(&input),
+            Err(e) => {
+                eprintln!("Unable to check for file existence. Please try again, or press Ctrl+c to exit the program. ({e:#})");
+                continue;
+            }
+        };
+
+        match result {
+            Ok(_) => break,
+            Err(e) => eprintln!("Failed to create path \"{input}\", please try again: {e:#}")
+        }
+    }
+    
 
     loop {
         // create enum for items/
         let name = demand_stdin("Class name");
         config.add_class(get_class(name));
-
-
-        // let professor_name = get_stdin("Professor name");
-        // let location = get_location("class");
-
-        // let mut class_times: Vec<ClassTime> = Vec::new();
-
-        // loop {
-        //     print("What day is this class on (one at a time, M, T, W, Th, F, Sat, Sun, or Ctrl+c to exit): ");
-        //     let raw = stdin_readline().expect("Unable to read date");
-        //     let input = raw.trim();
-
-        //     let day = Day::from(input);
-        //     if day == Day::Async {
-        //         println!("Marking {class_name} as an asynchronous class.");
-        //         break;
-        //     }
-
-        //     if day == Day::Unset {
-        //         println!("Invalid input: \"{input}\". Please use specified format.");
-        //         continue;
-        //     };
-
-        //     let start_time = get_time("start", day, None);
-        //     let end_time = get_time("end", day, Some(start_time));
-        
-        //     class_times.push((start_time, end_time).into());
-
-        //     // set defaults based on previous entry
-        //     print("Would you like to add another time for this class? [Y/n]: ");
-        //     match stdin_readline().expect("Failed to read input.").as_str().trim() {
-        //         "" | "Y" | "y" => continue,
-        //         _ => break
-        //     }
-        // }
-
-        // // implement office hours
 
         let response = prompt!("Would you like to add another class? [Y/n]: ");
         match response.as_str() {
