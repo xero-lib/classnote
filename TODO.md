@@ -1,3 +1,4 @@
+- [ ] Attach helpers to class/config structs for interactively adding new classes and modifying existing ones
 - [ ] Add a "New Semester" command
 - [ ] Add a "Semester Complete" command
 - [ ] Add flag (and persistence) for 24 vs 12 hour format.
