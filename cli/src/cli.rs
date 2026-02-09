@@ -3,7 +3,7 @@ pub use clap::{ Parser, Subcommand };
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 pub struct Cli {
-    /// Optional name of class to create/edit a note of
+    /// Optional name of course to edit the most recent note of
     #[arg(short, long)]
     pub name: Option<String>,
 
