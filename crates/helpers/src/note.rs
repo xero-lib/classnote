@@ -1,7 +1,7 @@
 use std::{fs::{DirEntry, File}, path::PathBuf, process::Command, time};
 
 use chrono::{DateTime, Local};
-use data::{Config, class::Class, time::{Time, Times}};
+use data::{Config, Editor, class::Class, obsidian::ObsidianPath, time::{Time, Times}};
 
 
 pub fn create_note(name: &str) -> File{
@@ -90,7 +90,8 @@ pub fn get_current_classnote(config: &Config, class: &Class) -> (PathBuf, File) 
     std::fs::create_dir_all(&class_path).expect("Failed to create class directory.");
 
     let file_path = class_path.join(class_instance + ".md");
-    
+    // file_path.add_extension("md");
+
     return (file_path.clone(), std::fs::OpenOptions::new().append(true).create(true).read(true).write(true).open(file_path).unwrap());
 }
 
@@ -113,14 +114,22 @@ pub fn open_note(config: Config) {
     let (path, _note) = get_current_classnote(&config, &class);
     
     // perhaps later implement your own editor?
-    let status = Command::new(config.get_editor())
-        .arg(path)
-        .status()
-        .expect("Failed to start editor.")
-    ;
+    let status = match config.get_editor() {
+        Editor::Simple(program) => 
+            Command::new(program)
+                .arg(path)
+                .status()
+        ,
+
+        Editor::Complex { program, uri } => 
+            Command::new(program)
+                .arg(ObsidianPath::build_uri(&uri.vault, path))
+                .status()
+            
+    }.expect("Failed to start editor.");
 
     println!("{} exited {}.",
-        config.get_editor(),
+        config.get_editor_program(),
         if status.success() {
             "successfully"
         } else {

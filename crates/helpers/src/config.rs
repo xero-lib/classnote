@@ -3,11 +3,12 @@ use std::io::{Read, Write};
 use std::path::PathBuf;
 
 use data::class::Class;
+use data::obsidian::ObsidianPath;
 use data::time::{ClassTime, Day, Time, Times};
-use data::{Config, Location};
+use data::{Config, Location, Editor};
 
-use crate::io::{demand_stdin, prompt};
-use crate::print_flush;
+use super::io::{demand_stdin, prompt};
+use super::print_flush;
 
 use super::parse_time;
 
@@ -134,17 +135,6 @@ fn build_config_from_dir(dir: ReadDir) -> Config {
         config.add_class(get_class(name));
     }
 
-    let mut editor = std::env::var("EDITOR").unwrap_or_default();
-    let should_prompt = if !editor.is_empty() {
-        let input = prompt!("Would you like to set a custom editor? [y/N]: ");
-        
-        input.to_ascii_lowercase().starts_with('y')
-    } else { true };
-    
-    if should_prompt { editor = demand_stdin("Editor program"); }
-
-    config.set_editor(editor);
-
     let mut root = std::env::current_dir().unwrap_or_default();
     
     let should_prompt_path = if !root.as_os_str().is_empty() {
@@ -170,6 +160,32 @@ fn build_config_from_dir(dir: ReadDir) -> Config {
         }
     }
 
+    let mut program = std::env::var("EDITOR").unwrap_or_default();
+    let should_prompt = if !program.is_empty() {
+        let input = prompt!("Would you like to set a custom editor? [y/N]: ");
+        
+        input.to_ascii_lowercase().starts_with('y')
+    } else { true };
+    
+    if should_prompt { program = prompt!(required, "Editor program: "); }
+
+    let editor = match program.as_str() {
+        "obsidian" => {
+            let vault = prompt!(required, "Which vault do you want to use?");
+            // todo: Implement Editor::new or from
+            Editor::Complex {
+                program,
+                uri: ObsidianPath {
+                    courses_root: root.clone(),
+                    vault
+                }
+            }
+            // ! ask obsidian if it exists
+        }
+        _ => Editor::Simple(program)
+    };
+
+    config.set_editor(editor);
     config.set_root(root);
 
     return config;
