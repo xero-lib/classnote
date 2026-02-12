@@ -3,3 +3,6 @@
 - [ ] Add a "Semester Complete" command
 - [ ] Add flag (and persistence) for 24 vs 12 hour format.
 - [ ] Differentiate between course (MATH-2415) and class (Class5)
+- [ ] Integrate obsidian and git functionality, as well as optional audio recording
+- [ ] Allow user to enter a custom class number to edit/create
+- [ ] If note doesn't already exist, add headers for Review and others to be able to get later for review (between dates?)
