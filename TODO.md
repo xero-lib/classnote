@@ -1,3 +1,4 @@
+- [ ] Check if latest class is current class so opening doesn't always make a new note.
 - [ ] Attach helpers to class/config structs for interactively adding new classes and modifying existing ones
 - [ ] Add a "New Semester" command
 - [ ] Add a "Semester Complete" command
@@ -6,3 +7,4 @@
 - [ ] Integrate obsidian and git functionality, as well as optional audio recording
 - [ ] Allow user to enter a custom class number to edit/create
 - [ ] If note doesn't already exist, add headers for Review and others to be able to get later for review (between dates?)
+- [ ] Check for date discrepancy for making new week

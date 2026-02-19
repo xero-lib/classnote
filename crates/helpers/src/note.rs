@@ -29,7 +29,7 @@ pub fn get_latest_week_num(config: &Config, class: &Class) -> u16 {
             f
                 .file_name()
                 .to_string_lossy()
-                .strip_prefix("Week_")?
+                .strip_prefix("Week-")?
                 .parse::<u16>()
                 .ok()
         })
@@ -40,7 +40,7 @@ pub fn get_latest_week_num(config: &Config, class: &Class) -> u16 {
 pub fn get_current_classnote(config: &Config, class: &Class) -> (PathBuf, File) {
     let latest_week = get_latest_week_num(config, class);
     let course_path = config.get_root().join(class.get_name());
-    let week_entries = std::fs::read_dir(course_path.join(format!("Week_{latest_week}"))).unwrap().filter_map(Result::ok).collect::<Vec<DirEntry>>();
+    let week_entries = std::fs::read_dir(course_path.join(format!("Week-{latest_week}"))).unwrap().filter_map(Result::ok).collect::<Vec<DirEntry>>();
 
     let last_class_num = week_entries
         .iter()
@@ -65,24 +65,24 @@ pub fn get_current_classnote(config: &Config, class: &Class) -> (PathBuf, File) 
     let current_time: DateTime<Local> = time::SystemTime::now().into();
     let current_iso_8601 = current_time.format("%Y-%m-%d");
     
-    let potential_class_name = format!("Class{}-{}", last_class_num, current_iso_8601);
-    let potential_class_path = course_path.join(format!("Week_{}", latest_week)).join(&potential_class_name);
+    let potential_class_name = format!("Class-{}-{}", last_class_num, current_iso_8601);
+    let potential_class_path = course_path.join(format!("Week-{}", latest_week)).join(&potential_class_name);
     if std::fs::exists(&potential_class_path).expect("Unable to check for note folder path existence.") {
         let file_path = potential_class_path.join(potential_class_name + ".md");
         return (file_path.clone(), std::fs::OpenOptions::new().append(true).create(true).read(true).write(true).open(file_path).unwrap());
     }
 
-    let class_instance = format!("Class{}-{}", last_class_num + 1, current_iso_8601);
+    let class_instance = format!("Class-{}-{}", last_class_num + 1, current_iso_8601);
     let class_path =
         if week_entries.len() >= class.get_times().len() {
-            let new_path = course_path.join(format!("Week_{}", latest_week + 1));
+            let new_path = course_path.join(format!("Week-{}", latest_week + 1));
             if !std::fs::exists(&new_path).expect("Unable to check for note folder path existence.") {
                 std::fs::create_dir(&new_path).expect("Unable to create new week directory.");
             }
 
             new_path
         } else {
-            course_path.join(format!("Week_{latest_week}"))
+            course_path.join(format!("Week-{latest_week}"))
         }
         .join(&class_instance)
     ;
